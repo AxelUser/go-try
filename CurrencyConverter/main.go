@@ -11,6 +11,7 @@ import (
 type Rates struct {
 	Base       string `json:"base"`
 	Date       string `json:"date"`
+	Error      string `json:"error"`
 	Currencies struct {
 		AUD float64 `json:"AUD"`
 		CAD float64 `json:"CAD"`
@@ -32,7 +33,6 @@ func loadRates(currencyCode string) Rates {
 	if httpError != nil {
 		fmt.Println(httpError)
 	}
-
 	defer httpResponse.Body.Close()
 
 	body, readError := ioutil.ReadAll(httpResponse.Body)
@@ -48,6 +48,38 @@ func loadRates(currencyCode string) Rates {
 	return rates
 }
 
+func printRates(rates Rates, value float64) {
+	fmt.Println("Base currency:\t", rates.Base)
+	fmt.Println("Value of:\t", value)
+
+	fmt.Println("\n===== Convert =====\n")
+
+	if rates.Base != "USD" {
+		fmt.Println("US Dollar:\t", rates.Currencies.USD*value)
+	}
+	if rates.Base != "AUD" {
+		fmt.Println("Australian Dollar:\t", rates.Currencies.AUD*value)
+	}
+	if rates.Base != "CAD" {
+		fmt.Println("Canadian Dollar:\t", rates.Currencies.CAD*value)
+	}
+	if rates.Base != "CHF" {
+		fmt.Println("Swiss Franc:\t", rates.Currencies.CHF*value)
+	}
+	if rates.Base != "EUR" {
+		fmt.Println("Euro:\t", rates.Currencies.EUR*value)
+	}
+	if rates.Base != "RUB" {
+		fmt.Println("Russian Ruble:\t", rates.Currencies.RUB*value)
+	}
+	if rates.Base != "JPY" {
+		fmt.Println("Japanese Yen:\t", rates.Currencies.JPY*value)
+	}
+	if rates.Base != "NZD" {
+		fmt.Println("New Zealand Dollar:\t", rates.Currencies.NZD*value)
+	}
+}
+
 func main() {
 	var (
 		currencyBase string
@@ -57,19 +89,13 @@ func main() {
 	flag.StringVar(&currencyBase, "currency", "RUB", "Currency code")
 	flag.Float64Var(&value, "value", 1, "Amount of money to convert")
 
+	flag.Parse()
+
 	rates := loadRates(currencyBase)
 
-	fmt.Println("Base currency:\t", rates.Base)
-	fmt.Println("Value of:\t", value)
-
-	fmt.Println("\n===== Convert =====\n")
-
-	fmt.Println("US Dollar:\t", rates.Currencies.USD*value)
-	fmt.Println("Australian Dollar:\t", rates.Currencies.AUD*value)
-	fmt.Println("Canadian Dollar:\t", rates.Currencies.CAD*value)
-	fmt.Println("Swiss Franc:\t", rates.Currencies.CHF*value)
-	fmt.Println("Euro:\t", rates.Currencies.EUR*value)
-	fmt.Println("Russian Ruble:\t", rates.Currencies.RUB*value)
-	fmt.Println("Japanese Yen:\t", rates.Currencies.JPY*value)
-	fmt.Println("New Zealand Dollar:\t", rates.Currencies.NZD*value)
+	if rates.Error == "" {
+		printRates(rates, value)
+	} else {
+		fmt.Print("Error:\t", rates.Error)
+	}
 }
