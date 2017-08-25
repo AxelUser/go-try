@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -27,26 +28,33 @@ type Rates struct {
 
 const CurrencyApiBase string = "http://api.fixer.io/latest?base="
 
-func loadRates(currencyCode string) Rates {
-	var rates Rates
+func loadRates(currencyCode string) (r *Rates, err error) {
+	var rates *Rates
 
 	httpResponse, httpError := http.Get(CurrencyApiBase + currencyCode)
 	if httpError != nil {
 		fmt.Println(httpError)
+		return nil, errors.New("Could not load rates")
 	}
 	defer httpResponse.Body.Close()
 
 	body, readError := ioutil.ReadAll(httpResponse.Body)
 	if readError != nil {
 		fmt.Println(readError)
+		return nil, errors.New("Could not load rates")
 	}
 
 	jsonError := json.Unmarshal(body, &rates)
 	if jsonError != nil {
 		fmt.Println(jsonError)
+		return nil, errors.New("Could not load rates")
 	}
 
-	return rates
+	if rates.Error != "" {
+		return nil, errors.New("Could not load rates: " + rates.Error)
+	}
+
+	return rates, nil
 }
 
 func printRates(rates Rates, value float64) {
@@ -92,11 +100,12 @@ func main() {
 
 	flag.Parse()
 
-	rates := loadRates(currencyBase)
-
-	if rates.Error == "" {
-		printRates(rates, value)
-	} else {
-		fmt.Print("Error:\t", rates.Error)
+	rates, err := loadRates(currencyBase)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+
+	printRates(*rates, value)
+	return
 }
