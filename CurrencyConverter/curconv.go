@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+//Rates for currency
 type Rates struct {
 	Base       string `json:"base"`
 	Date       string `json:"date"`
