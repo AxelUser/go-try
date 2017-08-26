@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -33,20 +34,20 @@ func loadRates(currencyCode string) (r *Rates, err error) {
 
 	httpResponse, httpError := http.Get(CurrencyApiBase + currencyCode)
 	if httpError != nil {
-		fmt.Println(httpError)
+		log.Println(httpError)
 		return nil, errors.New("Could not load rates")
 	}
 	defer httpResponse.Body.Close()
 
 	body, readError := ioutil.ReadAll(httpResponse.Body)
 	if readError != nil {
-		fmt.Println(readError)
+		log.Println(readError)
 		return nil, errors.New("Could not load rates")
 	}
 
 	jsonError := json.Unmarshal(body, &rates)
 	if jsonError != nil {
-		fmt.Println(jsonError)
+		log.Println(jsonError)
 		return nil, errors.New("Could not load rates")
 	}
 
@@ -102,10 +103,8 @@ func main() {
 
 	rates, err := loadRates(currencyBase)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	printRates(*rates, value)
-	return
 }
